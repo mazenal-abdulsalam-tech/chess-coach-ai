@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chess Coach AI</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101813;color:#eef5ef;font:16px Arial,sans-serif;padding:24px}main{max-width:900px;margin:auto}h1{color:#a8e6b8}p{color:#b5c4b8;line-height:1.5}.card{background:#1b2920;border:1px solid #405744;border-radius:14px;padding:18px;margin:16px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:650px){.grid{grid-template-columns:1fr}}textarea{width:100%;min-height:78px;background:#101813;color:white;border:1px solid #607865;border-radius:8px;padding:10px;font:12px monospace}.board{display:grid;grid-template-columns:repeat(8,1fr);width:100%;max-width:440px;aspect-ratio:1;margin:auto;border:4px solid #405744}.sq{display:grid;place-items:center;font-size:clamp(22px,5vw,44px)}.light{background:#e8e5d4}.dark{background:#78916f}.wp{color:#fff;text-shadow:1px 2px 3px #222}.bp{color:#202820}button{background:#a8e6b8;color:#102016;border:0;border-radius:8px;padding:12px 16px;font-weight:bold;cursor:pointer;margin-top:10px}.result{background:#101813;border-radius:8px;padding:12px;line-height:1.6;margin-top:12px}.stat{padding:9px;background:#293b2e;border-radius:7px;margin:6px 0}
+</style>
+</head>
+<body><main>
+<h1>♞ Chess Coach AI</h1>
+<p>Schackträning och positionsanalys. Klistra in en FEN-position från en studie eller ett avslutat parti.</p>
+<div class="grid">
+<section class="card"><h2>Schackbräde</h2><div class="board" id="board"></div><p id="turn">Vit står på tur.</p></section>
+<section class="card"><h2>Positionsanalys</h2><label for="fen">FEN-kod</label><textarea id="fen">rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1</textarea><button id="analyze">Analysera position</button><div class="result" id="result">Redo att analysera.</div></section>
+</div>
+<section class="card"><h2>Tränarens checklista</h2><div class="stat">1. Vad hotar motståndaren?</div><div class="stat">2. Vilken pjäs är minst aktiv?</div><div class="stat">3. Finns det en oskyddad pjäs?</div><div class="stat">4. Hur kan du förbättra kungens säkerhet?</div></section>
+<p>Obs: Detta är en första version med materialräkning, inte en fullständig schackmotor. Använd den för övningar och analys efter avslutade partier, inte som draghjälp i pågående rankade matcher.</p>
+</main>
+<script>
+const glyph={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"},value={k:0,q:9,r:5,b:3,n:3,p:1};
+function run(){let out=document.getElementById("result");try{let f=document.getElementById("fen").value.trim().split(/\s+/);if(f.length<2||!["w","b"].includes(f[1]))throw Error("Kontrollera FEN-koden och turordningen.");let rows=f[0].split("/");if(rows.length!==8)throw Error("FEN måste innehålla åtta rader.");let b=[],tot={w:0,b:0},k={w:0,b:0};for(let row of rows){let a=[];for(let c of row){if(/[1-8]/.test(c)){for(let i=0;i<+c;i++)a.push(null)}else if(glyph[c]){a.push(c);let s=c===c.toUpperCase()?"w":"b";tot[s]+=value[c.toLowerCase()];if(c.toLowerCase()==="k")k[s]++}else throw Error("Okänt tecken i FEN.")}if(a.length!==8)throw Error("En rad måste motsvara åtta rutor.");b.push(a)}if(k.w!==1||k.b!==1)throw Error("Positionen måste ha en vit och en svart kung.");let board=document.getElementById("board");board.innerHTML="";b.forEach((row,r)=>row.forEach((p,c)=>{let d=document.createElement("div");d.className="sq "+((r+c)%2?"dark":"light");if(p){let s=document.createElement("span");s.textContent=glyph[p];s.className=p===p.toUpperCase()?"wp":"bp";d.append(s)}board.append(d)}));let diff=tot.w-tot.b;document.getElementById("turn").textContent=(f[1]==="w"?"Vit":"Svart")+" står på tur.";out.innerHTML="<b>Positionsrapport</b><div class='stat'>Vit: "+tot.w+" materialpoäng</div><div class='stat'>Svart: "+tot.b+" materialpoäng</div><p>"+(diff===0?"Materialet är jämnt.":(diff>0?"Vit":"Svart")+" har "+Math.abs(diff)+" materialpoäng mer.")+"</p><p>Tränarfråga: Vilket hot behöver du kontrollera innan du väljer drag?</p><small>Materialräkning är inte samma sak som en fullständig motoranalys.</small>"}catch(e){out.textContent="Fel: "+e.message}}
+document.getElementById("analyze").addEventListener("click",run);run();
+</script></body></html>
