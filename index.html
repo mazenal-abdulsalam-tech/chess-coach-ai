@@ -1,30 +1,248 @@
-<!doctype html>
-<html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chess Coach AI – träningsläge</title>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VICE CITY | GTA VI COMMAND CENTER</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#101813;color:#eef5ef;font:16px Arial,sans-serif;padding:22px}main{max-width:950px;margin:auto}h1{color:#a8e6b8}p{color:#b5c4b8;line-height:1.5}.card{background:#1b2920;border:1px solid #405744;border-radius:14px;padding:18px;margin:16px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:700px){.grid{grid-template-columns:1fr}}textarea{width:100%;min-height:78px;background:#101813;color:white;border:1px solid #607865;border-radius:8px;padding:10px;font:12px monospace}.board{display:grid;grid-template-columns:repeat(8,1fr);width:100%;max-width:440px;aspect-ratio:1;margin:auto;border:4px solid #405744}.sq{display:grid;place-items:center;font-size:clamp(22px,5vw,44px)}.light{background:#e8e5d4}.dark{background:#78916f}.wp{color:white;text-shadow:1px 2px 3px #222}.bp{color:#202820}button{background:#a8e6b8;color:#102016;border:0;border-radius:8px;padding:12px 15px;font-weight:bold;cursor:pointer;margin:6px 6px 6px 0}button.secondary{background:#354a3a;color:#eef5ef}.result{background:#101813;border-radius:8px;padding:12px;line-height:1.6;margin-top:12px}.stat{padding:9px;background:#293b2e;border-radius:7px;margin:6px 0}video{width:100%;max-height:360px;background:#080d09;border-radius:10px;margin-top:10px}.muted{font-size:13px;color:#aab9ad}.pill{display:inline-block;background:#314735;color:#c8f3d1;padding:5px 9px;border-radius:20px;font-size:12px}#mini{position:fixed;right:16px;bottom:16px;width:min(310px,calc(100vw - 32px));z-index:5;background:#1b2920;border:1px solid #8bb995;border-radius:13px;padding:13px;box-shadow:0 8px 30px #0009}#mini[hidden]{display:none}#mini h3{margin:0 0 8px;color:#a8e6b8}#mini p{font-size:14px;margin:6px 0}#minihead{display:flex;justify-content:space-between;align-items:center}
-</style></head><body><main>
-<h1>♞ Chess Coach AI</h1><p>Schackcoach för studier och genomgång av avslutade partier.</p>
-<section class="card"><span class="pill">TRÄNINGSLÄGE</span><h2>Flytande minicoach</h2>
-<p>Tryck på knappen för att öppna coachen i ett separat bild-i-bild-fönster som kan ligga ovanpå andra fönster. Funktionen kräver en webbläsare som stöder video-PiP (till exempel Chrome eller Edge på dator).</p>
-<button id="pipBtn">Öppna flytande popup</button><button id="toggleMini" class="secondary">Visa popup på sidan</button><p id="pipStatus" class="muted">Popupen är inte öppnad.</p></section>
-<section class="card"><h2>Skärmdelning</h2><p>Välj Chess.com-fönstret eller en skärm i webbläsarens dialog. Den här prototypen visar förhandsvisningen, men tolkar inte automatiskt pjäser eller drag.</p>
-<button id="share">Starta skärmdelning</button><button id="stop" class="secondary" disabled>Stoppa delning</button><p id="shareStatus" class="muted">Ingen skärm delas.</p><video id="preview" autoplay playsinline muted hidden></video></section>
-<div class="grid"><section class="card"><h2>Schackbräde</h2><div class="board" id="board"></div><p id="turn">Vit står på tur.</p></section>
-<section class="card"><h2>Analysera position</h2><p>Klistra in FEN från en studie eller ett avslutat parti.</p><label for="fen">FEN-kod</label><textarea id="fen">rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1</textarea><button id="analyze">Analysera position</button><div class="result" id="result">Redo att analysera.</div></section></div>
-<p class="muted">Viktigt: använd inte verktyget för draghjälp under pågående rankade matcher. Coachens frågor är avsedda för träning och analys efter matchen. Skärmdelningen sker bara när du själv startar den.</p>
+:root{--bg:#100c20;--panel:#201831;--pink:#ff4fa3;--cyan:#45e5e5;--text:#fff;--muted:#b9accb}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top right,#42204e,#100c20 55%);color:var(--text);font-family:Arial,sans-serif}
+header{padding:20px;text-align:center;background:#130d22;border-bottom:1px solid #ffffff22}
+header h1{color:var(--pink);letter-spacing:5px;margin:0}
+nav{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:15px}
+a{color:var(--cyan);text-decoration:none}
+main{max-width:1000px;margin:auto;padding:25px}
+section{background:var(--panel);padding:22px;border-radius:16px;margin-bottom:20px;border:1px solid #ffffff20}
+h2{color:var(--pink)}
+button{background:linear-gradient(90deg,#ff4fa3,#a44cff);color:white;border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:bold;margin:5px 2px}
+input,textarea,select{width:100%;padding:12px;border-radius:8px;background:#100c20;color:white;border:1px solid #665477;margin:7px 0}
+textarea{min-height:100px;resize:vertical}
+.timer{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.time{background:#100c20;padding:20px 5px;text-align:center;border-radius:10px}
+.time strong{display:block;font-size:clamp(25px,5vw,42px);color:var(--cyan)}
+.time small{color:var(--muted)}
+.task{padding:10px;background:#100c20;border-radius:8px;margin:8px 0;display:flex;gap:10px;align-items:center}
+.task span{flex:1}
+.task.done span{text-decoration:line-through;color:var(--muted)}
+.status{color:var(--cyan);font-size:13px;white-space:pre-wrap}
+@media(max-width:550px){.timer{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+<h1>VICE CITY VI</h1>
+<div>YOUR PERSONAL GTA VI COMMAND CENTER</div>
+<nav>
+<a href="#countdown">Countdown</a>
+<a href="#planner">Planner</a>
+<a href="#ai">AI Assistant</a>
+<a href="#github">GitHub</a>
+<a href="#notes">Notes</a>
+</nav>
+</header>
+
+<main>
+<section id="countdown">
+<h2>THE WAIT IS ON</h2>
+<p>Countdown to your GTA VI target date.</p>
+<div class="timer">
+<div class="time"><strong id="days">0</strong><small>DAYS</small></div>
+<div class="time"><strong id="hours">0</strong><small>HOURS</small></div>
+<div class="time"><strong id="minutes">0</strong><small>MINUTES</small></div>
+<div class="time"><strong id="seconds">0</strong><small>SECONDS</small></div>
+</div>
+<label>Change countdown target</label>
+<input type="datetime-local" id="target">
+<button onclick="saveTarget()">Save date</button>
+<button onclick="shareCountdown()">Copy countdown</button>
+<p class="status" id="countStatus"></p>
+</section>
+
+<section id="planner">
+<h2>LAUNCH PLANNER</h2>
+<p>Add your own tasks and keep track of them.</p>
+<input id="taskInput" placeholder="What do you need to do?">
+<button onclick="addTask()">Add task</button>
+<button onclick="clearCompleted()">Clear completed</button>
+<div id="tasks"></div>
+</section>
+
+<section id="ai">
+<h2>AI COPILOT</h2>
+<p>Ask ChatGPT to help organise your GTA VI plans. Your checklist and notes can be included in the prompt.</p>
+<textarea id="question" placeholder="Ask AI something..."></textarea>
+<button onclick="askAI()">OPEN CHATGPT</button>
+<button onclick="copyPrompt()">COPY AI PROMPT</button>
+<p class="status" id="aiStatus"></p>
+</section>
+
+<section id="github">
+<h2>GITHUB IMPORTER</h2>
+<p>Import a file from a public GitHub repository into your notes or checklist.</p>
+<input id="githubUrl" placeholder="https://github.com/user/repo/blob/main/tasks.md">
+<select id="importMode">
+<option value="notes">Import into notes</option>
+<option value="tasks">Import as tasks</option>
+<option value="json">Restore dashboard JSON backup</option>
+</select>
+<button onclick="importGithub()">FETCH FROM GITHUB</button>
+<p class="status" id="githubStatus"></p>
+</section>
+
+<section id="notes">
+<h2>PERSONAL NOTEBOOK</h2>
+<textarea id="notesArea" placeholder="Write your plans and ideas here..."></textarea>
+<p class="status" id="notesStatus">Autosaving enabled.</p>
+</section>
+
+<section>
+<h2>BACKUP YOUR DASHBOARD</h2>
+<p>Download your checklist, countdown and notes.</p>
+<button onclick="exportBackup()">EXPORT BACKUP</button>
+<input type="file" id="backupFile" accept=".json">
+<button onclick="importBackup()">IMPORT BACKUP</button>
+</section>
 </main>
-<aside id="mini" hidden><div id="minihead"><h3>♞ Minicoach</h3><button id="hideMini" class="secondary">Dölj</button></div><p><b>1. Hot:</b> Vad hotar motståndaren?</p><p><b>2. Säkerhet:</b> Finns det någon oskyddad pjäs?</p><p><b>3. Plan:</b> Vilken pjäs kan förbättras?</p><p class="muted">Träningsfrågor – inga dragförslag i livepartier.</p></aside>
+
 <script>
-const glyph={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"},value={k:0,q:9,r:5,b:3,n:3,p:1};
-function run(){let out=document.getElementById("result");try{let f=document.getElementById("fen").value.trim().split(/\s+/);if(f.length<2||!["w","b"].includes(f[1]))throw Error("Kontrollera FEN-koden och turordningen.");let rows=f[0].split("/");if(rows.length!==8)throw Error("FEN måste innehålla åtta rader.");let b=[],tot={w:0,b:0},k={w:0,b:0};for(let row of rows){let a=[];for(let c of row){if(/[1-8]/.test(c)){for(let i=0;i<+c;i++)a.push(null)}else if(glyph[c]){a.push(c);let s=c===c.toUpperCase()?"w":"b";tot[s]+=value[c.toLowerCase()];if(c.toLowerCase()==="k")k[s]++}else throw Error("Okänt tecken i FEN.")}if(a.length!==8)throw Error("En rad måste motsvara åtta rutor.");b.push(a)}if(k.w!==1||k.b!==1)throw Error("Positionen måste ha en vit och en svart kung.");let board=document.getElementById("board");board.innerHTML="";b.forEach((row,r)=>row.forEach((p,c)=>{let d=document.createElement("div");d.className="sq "+((r+c)%2?"dark":"light");if(p){let s=document.createElement("span");s.textContent=glyph[p];s.className=p===p.toUpperCase()?"wp":"bp";d.append(s)}board.append(d)}));let diff=tot.w-tot.b;document.getElementById("turn").textContent=(f[1]==="w"?"Vit":"Svart")+" står på tur.";out.innerHTML="<b>Positionsrapport</b><div class='stat'>Vit: "+tot.w+" materialpoäng</div><div class='stat'>Svart: "+tot.b+" materialpoäng</div><p>"+(diff===0?"Materialet är jämnt.":(diff>0?"Vit":"Svart")+" har "+Math.abs(diff)+" materialpoäng mer.")+"</p><p>Tränarfråga: Vilket hot behöver du kontrollera först?</p><small>Materialräkning, inte fullständig motoranalys.</small>"}catch(e){out.textContent="Fel: "+e.message}}
-document.getElementById("analyze").addEventListener("click",run);run();
-let stream=null;const video=document.getElementById("preview");function stopShare(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null;video.hidden=true;document.getElementById("shareStatus").textContent="Ingen skärm delas.";document.getElementById("stop").disabled=true}
-document.getElementById("share").addEventListener("click",async()=>{try{if(!navigator.mediaDevices?.getDisplayMedia)throw Error("Skärmdelning stöds inte här. Öppna sidan via HTTPS i Chrome eller Edge på dator.");stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});video.srcObject=stream;video.hidden=false;await video.play();document.getElementById("shareStatus").textContent="Skärmen delas och visas i förhandsvisningen.";document.getElementById("stop").disabled=false;stream.getVideoTracks()[0].addEventListener("ended",stopShare)}catch(e){document.getElementById("shareStatus").textContent=e.name==="NotAllowedError"?"Du avbröt eller nekade skärmdelningen.":e.message}});document.getElementById("stop").addEventListener("click",stopShare);
-const mini=document.getElementById("mini");document.getElementById("toggleMini").addEventListener("click",()=>mini.hidden=!mini.hidden);document.getElementById("hideMini").addEventListener("click",()=>mini.hidden=true);
-const pipVideo=document.createElement("video");pipVideo.muted=true;pipVideo.autoplay=true;pipVideo.playsInline=true;pipVideo.style.position="fixed";pipVideo.style.width="1px";pipVideo.style.height="1px";pipVideo.style.opacity="0";document.body.append(pipVideo);
-const canvas=document.createElement("canvas");canvas.width=640;canvas.height=360;const ctx=canvas.getContext("2d");
-function paintCoach(){ctx.fillStyle="#14251a";ctx.fillRect(0,0,640,360);ctx.fillStyle="#a8e6b8";ctx.font="bold 34px Arial";ctx.fillText("♞ CHESS COACH",30,55);ctx.fillStyle="#ffffff";ctx.font="bold 25px Arial";ctx.fillText("Träningsfrågor",30,115);ctx.font="22px Arial";ctx.fillText("1. Vad hotar motståndaren?",30,175);ctx.fillText("2. Finns en oskyddad pjäs?",30,225);ctx.fillText("3. Vilken pjäs kan förbättras?",30,275);ctx.fillStyle="#b5c4b8";ctx.font="16px Arial";ctx.fillText("Analys och träning efter avslutad match",30,330)}
-paintCoach();const canvasStream=canvas.captureStream(2);pipVideo.srcObject=canvasStream;
-document.getElementById("pipBtn").addEventListener("click",async()=>{const status=document.getElementById("pipStatus");try{if(!("pictureInPictureEnabled" in document)||!document.pictureInPictureEnabled||!pipVideo.requestPictureInPicture)throw Error("Den här webbläsaren stöder inte flytande popup. Prova Chrome eller Edge på dator.");await pipVideo.play();await pipVideo.requestPictureInPicture();status.textContent="Popupen är öppen. Stäng den via X i popupen när du är klar."}catch(e){status.textContent=e.message||"Kunde inte öppna popupen. Tillåt bild-i-bild i webbläsaren och försök igen."}});
-pipVideo.addEventListener("leavepictureinpicture",()=>document.getElementById("pipStatus").textContent="Popupen stängdes.");
-</script></body></html>
+const KEY="viceCityDashboardV2";
+const DEFAULT_DATE="2026-11-19T00:00";
+let data={target:DEFAULT_DATE,tasks:[],notes:""};
+
+function load(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(KEY));
+  if(saved)data={...data,...saved};
+ }catch(e){}
+ document.getElementById("target").value=data.target;
+ document.getElementById("notesArea").value=data.notes;
+ renderTasks();
+}
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(data));
+}
+function saveTarget(){
+ const value=document.getElementById("target").value;
+ if(!value||isNaN(new Date(value)))return;
+ data.target=value;save();
+ document.getElementById("countStatus").textContent="Target saved!";
+}
+function updateClock(){
+ const diff=Math.max(0,new Date(data.target)-Date.now());
+ document.getElementById("days").textContent=Math.floor(diff/86400000);
+ document.getElementById("hours").textContent=Math.floor(diff/3600000)%24;
+ document.getElementById("minutes").textContent=Math.floor(diff/60000)%60;
+ document.getElementById("seconds").textContent=Math.floor(diff/1000)%60;
+}
+function shareCountdown(){
+ const text="My GTA VI countdown: "+document.getElementById("days").textContent+" days!";
+ navigator.clipboard.writeText(text).then(()=>document.getElementById("countStatus").textContent="Copied!");
+}
+function addTask(){
+ const input=document.getElementById("taskInput");
+ if(!input.value.trim())return;
+ data.tasks.push({id:Date.now()+Math.random(),text:input.value.trim(),done:false});
+ input.value="";save();renderTasks();
+}
+function renderTasks(){
+ const root=document.getElementById("tasks");
+ root.replaceChildren();
+ data.tasks.forEach(task=>{
+  const row=document.createElement("div");
+  row.className="task"+(task.done?" done":"");
+  const check=document.createElement("input");
+  check.type="checkbox";check.checked=task.done;
+  check.style.width="auto";
+  check.onchange=()=>{task.done=check.checked;save();renderTasks()};
+  const text=document.createElement("span");text.textContent=task.text;
+  const del=document.createElement("button");del.textContent="×";
+  del.onclick=()=>{data.tasks=data.tasks.filter(t=>t.id!==task.id);save();renderTasks()};
+  row.append(check,text,del);root.append(row);
+ });
+}
+function clearCompleted(){
+ data.tasks=data.tasks.filter(t=>!t.done);save();renderTasks();
+}
+function makePrompt(){
+ return "Help me with my personal GTA VI dashboard.\n\nMy request: "+
+ (document.getElementById("question").value||"Suggest improvements and a launch plan.")+
+ "\n\nMy tasks:\n"+
+ data.tasks.map(t=>(t.done?"DONE ":"TODO ")+t.text).join("\n")+
+ "\n\nMy notes:\n"+data.notes+
+ "\n\nGive practical, accurate advice. Do not invent official game announcements.";
+}
+function askAI(){
+ const url="https://chatgpt.com/?q="+encodeURIComponent(makePrompt());
+ window.open(url,"_blank","noopener");
+ document.getElementById("aiStatus").textContent="ChatGPT opened. Review your prompt before sending.";
+}
+function copyPrompt(){
+ navigator.clipboard.writeText(makePrompt()).then(()=>{
+  document.getElementById("aiStatus").textContent="Prompt copied!";
+ }).catch(()=>document.getElementById("aiStatus").textContent="Clipboard unavailable.");
+}
+document.getElementById("notesArea").addEventListener("input",e=>{
+ data.notes=e.target.value;save();
+ document.getElementById("notesStatus").textContent="Saved locally.";
+});
+function rawUrl(value){
+ const u=new URL(value);
+ if(u.hostname==="raw.githubusercontent.com")return u.href;
+ if(u.hostname==="github.com"){
+  const p=u.pathname.split("/").filter(Boolean);
+  if(p.length>=5&&p[2]==="blob")
+   return "https://raw.githubusercontent.com/"+p[0]+"/"+p[1]+"/"+p.slice(3).join("/");
+ }
+ throw Error("Use a public GitHub file URL.");
+}
+async function importGithub(){
+ const status=document.getElementById("githubStatus");
+ try{
+  const url=rawUrl(document.getElementById("githubUrl").value);
+  status.textContent="Fetching...";
+  const response=await fetch(url);
+  if(!response.ok)throw Error("File not found or repository is not public.");
+  const content=await response.text();
+  if(content.length>1000000)throw Error("File is too large.");
+  const mode=document.getElementById("importMode").value;
+  if(mode==="notes"){
+   data.notes+="\n\n--- GitHub import ---\n"+content;
+   document.getElementById("notesArea").value=data.notes;
+  }else if(mode==="tasks"){
+   content.split(/\r?\n/).map(x=>x.replace(/^\s*(?:[-*]|\d+[.)])\s*/,"").trim()).filter(Boolean).slice(0,200).forEach(text=>data.tasks.push({id:Date.now()+Math.random(),text,done:false}));
+   renderTasks();
+  }else{
+   const obj=JSON.parse(content);
+   if(!obj||!Array.isArray(obj.tasks))throw Error("Not a valid dashboard backup.");
+   data={...data,...obj};
+   document.getElementById("target").value=data.target;
+   document.getElementById("notesArea").value=data.notes;
+   renderTasks();
+  }
+  save();status.textContent="Import successful! Saved in this browser.";
+ }catch(e){status.textContent=e.message||"Import failed."}
+}
+function exportBackup(){
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+ a.download="gta-vi-dashboard-backup.json";a.click();
+ URL.revokeObjectURL(a.href);
+}
+async function importBackup(){
+ const file=document.getElementById("backupFile").files[0];
+ if(!file)return;
+ try{
+  const obj=JSON.parse(await file.text());
+  if(!obj||!Array.isArray(obj.tasks))throw Error("Invalid backup");
+  data={...data,...obj};save();load();
+  document.getElementById("countStatus").textContent="Backup restored!";
+ }catch(e){document.getElementById("countStatus").textContent=e.message}
+}
+load();
+updateClock();
+setInterval(updateClock,1000);
+</script>
+</body>
+</html>
